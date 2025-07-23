@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { SplashScreen } from './SplashScreen';
 import { BusMap } from './BusMap';
 import { NavigationMenu } from './NavigationMenu';
@@ -6,6 +6,8 @@ import { SettingsScreen } from './SettingsScreen';
 import { SearchScreen } from './SearchScreen';
 import { FavoritesScreen } from './FavoritesScreen';
 import { NotificationsScreen } from './NotificationsScreen';
+import { PWAInstallPrompt } from './PWAInstallPrompt';
+import { useServiceWorker } from '@/hooks/useServiceWorker';
 import { Menu, Bell } from 'lucide-react';
 import { Button } from './ui/button';
 
@@ -45,55 +47,56 @@ export const BusTrackerApp = () => {
     }
   };
 
-  return (
-    <div className="w-full h-screen relative overflow-hidden">
-      {showSplash && (
-        <SplashScreen onComplete={handleSplashComplete} />
-      )}
-      
-      {!showSplash && (
-        <div className="animate-fade-in relative">
-          {/* Floating Action Buttons - Only show on map screen */}
-          {currentScreen === 'map' && (
-            <>
-              {/* Menu Button */}
-              <Button
-                onClick={() => setIsMenuOpen(true)}
-                className="fixed top-4 left-4 z-40 w-12 h-12 rounded-full bg-white/90 backdrop-blur-md shadow-elegant hover:shadow-floating text-primary hover:bg-white transition-all"
-                size="sm"
-              >
-                <Menu className="w-5 h-5" />
-              </Button>
+  const { needRefresh, offlineReady } = useServiceWorker();
 
-              {/* Notifications Button */}
+  return (
+    <>
+      <PWAInstallPrompt />
+      <div className="relative w-full h-screen bg-gradient-to-br from-blue-50 to-blue-100 overflow-hidden">
+        {showSplash ? (
+          <SplashScreen onComplete={handleSplashComplete} />
+        ) : (
+          <>
+            <div className="absolute top-0 left-0 right-0 z-20">
+              <div className="flex items-center justify-between p-4">
               <Button
-                onClick={() => setCurrentScreen('notifications')}
-                className="fixed top-4 right-4 z-40 w-12 h-12 rounded-full bg-white/90 backdrop-blur-md shadow-elegant hover:shadow-floating text-primary hover:bg-white transition-all relative"
-                size="sm"
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
               >
-                <Bell className="w-5 h-5" />
+                <Menu className="w-6 h-6" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => handleNavigate('notifications')}
+              >
+                <Bell className="w-6 h-6" />
                 {hasNotifications && (
-                  <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center">
-                    <span className="text-xs text-white font-bold">3</span>
-                  </div>
+                  <div className="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full" />
                 )}
               </Button>
-            </>
-          )}
+            </div>
+          </div>
+
+          {/* Main Content */}
+          <div className="relative h-full">
+            {renderCurrentScreen()}
+          </div>
 
           {/* Navigation Menu */}
-          <NavigationMenu
-            isOpen={isMenuOpen}
-            onClose={() => setIsMenuOpen(false)}
-            onNavigate={handleNavigate}
-            currentScreen={currentScreen}
-            hasNotifications={hasNotifications}
-          />
-
-          {/* Current Screen */}
-          {renderCurrentScreen()}
-        </div>
+          {isMenuOpen && (
+            <NavigationMenu
+              currentScreen={currentScreen}
+              onNavigate={handleNavigate}
+              onClose={() => setIsMenuOpen(false)}
+              isOpen={isMenuOpen}
+              hasNotifications={hasNotifications}
+            />
+          )}
+        </>
       )}
     </div>
+    </>
   );
 };

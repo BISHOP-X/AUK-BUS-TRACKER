@@ -12,7 +12,8 @@ import {
   Heart,
   History,
   HelpCircle,
-  Info
+  Info,
+  Download
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
@@ -45,6 +46,18 @@ export const NavigationMenu = ({
     { id: 'help', label: 'Help & Support', icon: HelpCircle, badge: null },
     { id: 'about', label: 'About', icon: Info, badge: null },
   ];
+
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  
+  useEffect(() => {
+    const handler = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+
+    window.addEventListener('beforeinstallprompt', handler);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
 
   if (!isOpen) return null;
 
@@ -113,6 +126,23 @@ export const NavigationMenu = ({
                 </button>
               ))}
             </div>
+          </div>
+
+          {/* Download App Section */}
+          <div className="p-4 border-t border-border/20">
+            <button
+              onClick={async () => {
+                if (!deferredPrompt) return;
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log(`User response to install prompt: ${outcome}`);
+                setDeferredPrompt(null);
+              }}
+              className="w-full flex items-center justify-center space-x-2 p-3 rounded-xl bg-primary text-white font-medium hover:bg-primary/90 transition-colors"
+            >
+              <Download className="w-5 h-5 mr-2" />
+              Download App
+            </button>
           </div>
 
           {/* Footer */}
