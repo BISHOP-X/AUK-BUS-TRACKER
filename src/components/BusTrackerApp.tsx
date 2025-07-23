@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { SplashScreen } from './SplashScreen';
+import { WelcomeModal } from './WelcomeModal';
 import { BusMap } from './BusMap';
 import { NavigationMenu } from './NavigationMenu';
 import { SettingsScreen } from './SettingsScreen';
@@ -13,12 +14,14 @@ import { Button } from './ui/button';
 
 export const BusTrackerApp = () => {
   const [showSplash, setShowSplash] = useState(true);
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const [currentScreen, setCurrentScreen] = useState('map');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [hasNotifications] = useState(true);
 
   const handleSplashComplete = () => {
     setShowSplash(false);
+    setShowWelcomeModal(true);
   };
 
   const handleNavigate = (screen: string) => {
@@ -55,6 +58,8 @@ export const BusTrackerApp = () => {
       <div className="relative w-full h-screen bg-gradient-to-br from-blue-50 to-blue-100 overflow-hidden">
         {showSplash ? (
           <SplashScreen onComplete={handleSplashComplete} />
+        ) : showWelcomeModal ? (
+          <WelcomeModal onClose={() => setShowWelcomeModal(false)} />
         ) : (
           <>
             <div className="absolute top-0 left-0 right-0 z-20">
